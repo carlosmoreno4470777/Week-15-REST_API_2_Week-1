@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import pet.store.controller.model.PetStoreData;
+import pet.store.controller.model.PetStoreData.PetStoreEmployee;
+import pet.store.dao.EmployeeDao;
 import pet.store.dao.PetStoreDao;
+import pet.store.entity.Employee;
 import pet.store.entity.PetStore;
 
 @Service
@@ -16,6 +19,9 @@ public class PetStoreService {
 
 	@Autowired
 	private PetStoreDao petStoreDao;
+	
+	@Autowired
+	private EmployeeDao employeeDao;
 
 	@Transactional(readOnly = true)
 	public PetStoreData savePetStore(PetStoreData petStoreData) {
@@ -48,4 +54,32 @@ public class PetStoreService {
 				.orElseThrow(() -> new NoSuchElementException("Pet store with ID " + petStoreId + " not found"));
 	}
 
+    @Transactional
+    public PetStoreEmployee saveEmployee(Long petStoreId, PetStoreEmployee employeeData) {
+        PetStore petStore = findPetStoreByID(petStoreId);
+        
+        Employee employee = findOrCreateEmployee(petStore, employeeData);
+        copyEmployeeFields(employee, employeeData);
+        // making sure that  petStore is saved before updating employee
+        petStore = petStoreDao.save(petStore);
+        employee = employeeDao.save(employee);
+        return new PetStoreEmployee(employee);
+    }
+
+    private Employee findOrCreateEmployee(PetStore petStore, PetStoreEmployee employeeData) {
+        if (employeeData.getEmployeeId() == null) {
+            return new Employee();
+        } else {
+            return employeeDao.findById(employeeData.getEmployeeId())
+                      .orElseThrow(() -> new IllegalArgumentException("Employee with ID " + employeeData.getEmployeeId() + " not found"));
+        }
+    }
+    
+    private void copyEmployeeFields(Employee employee, PetStoreEmployee employeeData) {
+        employee.setEmployeeFirstName(employeeData.getEmployeeFirstName());
+        employee.setEmployeeLastName(employeeData.getEmployeeLastName());
+        employee.setEmployeePhone(employeeData.getEmployeePhone());
+        employee.setEmployeeJobTitle(employeeData.getEmployeeJobTitle());
+        //employee.setPetStore(petStore); // Set relationship to pet store
+    }
 }
