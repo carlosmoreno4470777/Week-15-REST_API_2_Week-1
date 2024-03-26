@@ -1,7 +1,9 @@
 package pet.store.service;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -151,6 +153,23 @@ public class PetStoreService {
         }
 
         return customer;
+	}
+
+    @Transactional(readOnly = true) 
+	public List<PetStoreData> retrieveAllPetStores() {
+        List<PetStore> petStores = petStoreDao.findAll();
+
+        // Convert PetStore entities to PetStoreData objects without customers and employees
+        List<PetStoreData> result = petStores.stream()
+                .map(petStore -> {
+                    PetStoreData petStoreData = new PetStoreData(petStore);
+                    petStoreData.setCustomers(null); // Set customers to null to avoid data transfer
+                    petStoreData.setEmployees(null); // Set employees to null to avoid data transfer
+                    return petStoreData;
+                })
+                .collect(Collectors.toList());
+
+        return result;
 	}
     
     
