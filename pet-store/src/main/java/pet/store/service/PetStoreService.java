@@ -155,6 +155,7 @@ public class PetStoreService {
         return customer;
 	}
 
+    //code for get all pet stores
     @Transactional(readOnly = true) 
 	public List<PetStoreData> retrieveAllPetStores() {
         List<PetStore> petStores = petStoreDao.findAll();
@@ -171,6 +172,18 @@ public class PetStoreService {
 
         return result;
 	}
+
+    //code to get the pet store by ID
+	public PetStoreData retrievePetStoreById(Long petStoreId) {
+        PetStore petStore = findPetStoreByID(petStoreId); // Call the existing find by ID method
+        return new PetStoreData(petStore); // Convert PetStore entity to PetStoreData object
+    }
+
+	//code for delete by a store ID
+	public void deletePetStoreById(Long petStoreId) {
+		 	PetStore petStore = findPetStoreByID(petStoreId); // Retrieve the entity
+		    petStoreDao.delete(petStore); // Pass the entity to the DAO for deletion
+		}
     
     
     
