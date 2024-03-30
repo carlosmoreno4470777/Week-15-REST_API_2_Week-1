@@ -1,7 +1,6 @@
 package pet.store.service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -12,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pet.store.controller.model.PetStoreData;
 import pet.store.controller.model.PetStoreData.PetStoreCustomer;
 import pet.store.controller.model.PetStoreData.PetStoreEmployee;
+import pet.store.dao.CustomerDao;
 import pet.store.dao.EmployeeDao;
 import pet.store.dao.PetStoreDao;
-import pet.store.dao.CustomerDao;
 import pet.store.entity.Customer;
 import pet.store.entity.Employee;
 import pet.store.entity.PetStore;
@@ -59,7 +58,7 @@ public class PetStoreService {
 
 	private PetStore findPetStoreByID(Long petStoreId) {
 		return petStoreDao.findById(petStoreId)
-				.orElseThrow(() -> new NoSuchElementException("Pet store with ID " + petStoreId + " not found"));
+				.orElseThrow();
 	}
 
 
@@ -67,7 +66,7 @@ public class PetStoreService {
 	@Transactional(readOnly = false)
 	public Employee findEmployeeById(Long petStoreId, Long employeeId) {
 	    Employee employee = employeeDao.findById(employeeId)
-	            .orElseThrow(() -> new NoSuchElementException("Employee not found"));
+	            .orElseThrow();
 
 	    if (employee.getPetStore() != null && !employee.getPetStore().getPetStoreId().equals(petStoreId)) {
 	        throw new IllegalArgumentException("Employee does not belong to the specified pet store");
@@ -113,11 +112,11 @@ public class PetStoreService {
         Customer customer = findOrCreateCustomer(petStoreId, petStoreCustomer.getCustomerId());
         copyCustomerFields(customer, petStoreCustomer);
 
-        customer.getPetStores().add(petStore); // Assuming a Set of PetStores in Customer entity
-        petStore.getCustomers().add(customer); // Assuming a Set of Customers in PetStore entity
+        customer.getPetStores().add(petStore);
+        petStore.getCustomers().add(customer);
 
         customer = customerDao.save(customer);
-        return new PetStoreCustomer(customer); // Assuming a constructor to create PetStoreCustomer from Customer
+        return new PetStoreCustomer(customer); 
     }
 
 	private void copyCustomerFields(Customer customer, PetStoreCustomer petStoreCustomer) {
@@ -137,7 +136,7 @@ public class PetStoreService {
     @Transactional(readOnly = false)
 	private Customer findCustomerById(Long petStoreId, Long customerId) {
         Customer customer = customerDao.findById(customerId)
-                .orElseThrow(() -> new NoSuchElementException("Customer not found"));
+                .orElseThrow();
 
         boolean foundPetStore = false;
         // Using a loop for clarity, but consider a stream for better performance:
@@ -164,8 +163,8 @@ public class PetStoreService {
         List<PetStoreData> result = petStores.stream()
                 .map(petStore -> {
                     PetStoreData petStoreData = new PetStoreData(petStore);
-                    petStoreData.setCustomers(null); // Set customers to null to avoid data transfer
-                    petStoreData.setEmployees(null); // Set employees to null to avoid data transfer
+                    petStoreData.setCustomers(null);
+                    petStoreData.setEmployees(null);
                     return petStoreData;
                 })
                 .collect(Collectors.toList());
